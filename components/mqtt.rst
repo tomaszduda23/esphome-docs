@@ -39,6 +39,8 @@ Configuration variables:
   authentication. Empty (the default) means no authentication.
 - **password** (*Optional*, string): The password to use for
   authentication. Empty (the default) means no authentication.
+- **clean_session** (*Optional*, boolean): Whether the broker will clean
+  the MQTT session after disconnect. Defaults to ``false``.
 - **client_id** (*Optional*, string): The client id to use for opening
   connections. See :ref:`mqtt-defaults` for more information.
 - **discover_ip** (*Optional*, boolean): If Home Assistant automatic device
@@ -456,6 +458,8 @@ Configuration variables:
    be retained. Defaults to ``true``.
 -  **discovery** (*Optional*, boolean): Manually enable/disable
    discovery for a component. Defaults to the global default.
+-  **subscribe_qos** (*Optional*, int): The [Quality of Service](https://www.hivemq.com/blog/mqtt-essentials-part-6-mqtt-quality-of-service-levels/)
+   level advertised in discovery for subscribing (only if discovery is enabled). Defaults to 0.
 -  **availability** (*Optional*): Manually set what should be sent to
    Home Assistant for showing entity availability. Default derived from
    :ref:`global birth/last will message <mqtt-last_will_birth>`.

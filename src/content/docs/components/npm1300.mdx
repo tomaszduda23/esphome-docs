@@ -1,0 +1,137 @@
+---
+description: "Instructions for setting up the Nordic Semiconductor nPM1300 power management IC in ESPHome."
+title: "Nordic nPM1300 PMIC"
+---
+
+The `npm1300` component reads the Nordic Semiconductor nPM1300 power management IC (PMIC) over the
+[I²C bus](/components/i2c/) ([product specification](https://docs.nordicsemi.com/bundle/ps_npm1300/page/keyfeatures_html5.html)).
+The nPM1300 has a 1-cell lithium-ion battery charger and a 10-bit ADC that measures the battery, the system supply
+(VSYS) and the USB supply (VBUS). The component reports these measurements and the charger state at
+`update_interval`; it does not change the charger or regulator settings of the chip.
+
+## Configuration
+
+```yaml
+# Example configuration entry
+npm1300:
+  id: pmic
+
+sensor:
+  - platform: npm1300
+    battery_voltage:
+      name: "Battery Voltage"
+
+binary_sensor:
+  - platform: npm1300
+    charging:
+      name: "Charging"
+```
+
+## Configuration Variables
+
+- **id** (*Optional*, [ID](/guides/configuration-types/#id)): Manually specify the ID used to reference this hub
+  from the platforms.
+- **address** (*Optional*, int): The I²C address of the chip. Defaults to `0x6B`.
+- **i2c_id** (*Optional*, [ID](/guides/configuration-types/#id)): Manually specify the ID of the I²C bus.
+- **update_interval** (*Optional*, [Time](/guides/configuration-types/#time)): How often to read the chip.
+  Defaults to `60s`.
+- **thermistor_resistance** (*Optional*, resistance): The nominal resistance of the battery thermistor (NTC), one of
+  `10kOhm`, `47kOhm` or `100kOhm`. Needed for the `battery_temperature` sensor.
+- **thermistor_beta** (*Optional*, int): The B constant of the battery thermistor. Defaults to `3380`.
+
+## Sensor
+
+```yaml
+sensor:
+  - platform: npm1300
+    battery_voltage:
+      name: "Battery Voltage"
+    battery_current:
+      name: "Battery Current"
+    battery_temperature:
+      name: "Battery Temperature"
+    die_temperature:
+      name: "PMIC Temperature"
+    system_voltage:
+      name: "System Voltage"
+    vbus_voltage:
+      name: "VBUS Voltage"
+    vbus_current_limit:
+      name: "VBUS Current Limit"
+```
+
+- **npm1300_id** (*Optional*, [ID](/guides/configuration-types/#id)): The ID of the `npm1300` hub.
+- **battery_voltage** (*Optional*): The battery voltage, in volts.
+- **battery_current** (*Optional*): The battery current, in amperes: positive while charging, negative while
+  discharging. The chip measures it relative to its charge current or discharge current limit, so it is most
+  accurate near those values.
+- **battery_temperature** (*Optional*): The battery temperature from the thermistor, in °C. Needs
+  `thermistor_resistance` on the hub.
+- **die_temperature** (*Optional*): The temperature of the nPM1300 itself, in °C.
+- **system_voltage** (*Optional*): The system supply voltage (VSYS), in volts.
+- **vbus_voltage** (*Optional*): The USB supply voltage (VBUS), in volts.
+- **vbus_current_limit** (*Optional*): The VBUS current limit stored in the chip, in amperes. The chip cannot
+  measure the VBUS current itself. This is the value software last selected; until software selects and applies a
+  limit, the sensor shows the reset value of the register (0.5 A) while the chip uses its power-on limit of 100 mA.
+
+All options from [Sensor](/components/sensor/).
+
+## Binary Sensor
+
+```yaml
+binary_sensor:
+  - platform: npm1300
+    vbus_present:
+      name: "VBUS Present"
+    vbus_current_limit_active:
+      name: "VBUS Current Limit Active"
+    charging:
+      name: "Charging"
+    charge_complete:
+      name: "Charge Complete"
+    battery_detected:
+      name: "Battery Detected"
+    charger_error:
+      name: "Charger Error"
+```
+
+- **npm1300_id** (*Optional*, [ID](/guides/configuration-types/#id)): The ID of the `npm1300` hub.
+- **vbus_present** (*Optional*): On when a supply is connected to VBUS.
+- **vbus_current_limit_active** (*Optional*): On while the VBUS current is held at its limit. The battery then
+  supplies the rest of the load, or charging slows down.
+- **charging** (*Optional*): On while the battery is charging (trickle, constant current or constant voltage).
+- **charge_complete** (*Optional*): On when charging is complete.
+- **battery_detected** (*Optional*): On when the charger detects a battery.
+- **charger_error** (*Optional*): On when the charger stopped because of an error, for example a battery or
+  thermistor fault or a charge timeout.
+
+All options from [Binary Sensor](/components/binary_sensor/).
+
+## Seeed Studio XIAO nRF54LM20A
+
+The XIAO nRF54LM20A boards have an nPM1300 at address `0x6B` on its own I²C bus on `P1.18` (SDA) and `P1.17` (SCL),
+with a 10 kΩ battery thermistor:
+
+```yaml
+i2c:
+  - id: pmic_bus
+    sda: P1.18
+    scl: P1.17
+
+npm1300:
+  i2c_id: pmic_bus
+  thermistor_resistance: 10kOhm
+
+sensor:
+  - platform: npm1300
+    battery_voltage:
+      name: "Battery Voltage"
+    battery_temperature:
+      name: "Battery Temperature"
+```
+
+## See Also
+
+- [I²C Bus](/components/i2c/)
+- [nRF52 Platform](/components/nrf52/)
+- [nPM1300 product page](https://www.nordicsemi.com/Products/nPM1300)
